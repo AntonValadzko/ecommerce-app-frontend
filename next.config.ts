@@ -1,8 +1,9 @@
 import type { NextConfig } from 'next';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseConfigEnv } from './src/lib/env';
 
-const apiUrl = process.env.API_URL ?? 'http://localhost:3000';
+const { API_URL: apiUrl } = parseConfigEnv();
 const frontendRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {

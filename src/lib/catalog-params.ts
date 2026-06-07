@@ -1,4 +1,5 @@
 import type { CatalogQuery, SortOption } from './types';
+import { logger } from './logger';
 
 const SORT_OPTIONS: SortOption[] = [
   'relevance',
@@ -39,6 +40,7 @@ export function parseCatalogParams(
     try {
       attributes = JSON.parse(attrRaw) as Record<string, string[]>;
     } catch {
+      logger.warn('Invalid attributes query param', { attributes: attrRaw });
       attributes = undefined;
     }
   }

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { api } from '@/lib/api';
+import { logger } from '@/lib/logger';
 import { formatPrice, discountPercent } from '@/lib/format';
 import { StarRating } from '@/components/ui/StarRating';
 import { ProductDetailClient } from '@/components/products/ProductDetailClient';
@@ -15,7 +16,11 @@ interface PageProps {
 async function getProduct(slug: string) {
   try {
     return await api.getProductBySlug(slug);
-  } catch {
+  } catch (error) {
+    logger.warn('Product not found or failed to load', {
+      slug,
+      error: error instanceof Error ? error.message : String(error),
+    });
     return null;
   }
 }
@@ -45,7 +50,13 @@ export default async function ProductPage({ params }: PageProps) {
   if (!result) notFound();
 
   const { data: product } = result;
-  const related = await api.getRelated(product.id).catch(() => ({ data: [] }));
+  const related = await api.getRelated(product.id).catch((error) => {
+    logger.warn('Failed to load related products', {
+      productId: product.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { data: [] };
+  });
   const discount = discountPercent(product.price, product.compareAtPrice);
   const seo = result.meta.seo;
 

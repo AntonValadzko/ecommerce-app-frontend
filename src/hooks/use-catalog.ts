@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
 import useSWR from 'swr';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import { logger } from '@/lib/logger';
 import { catalogParamsToUrl, parseCatalogParams } from '@/lib/catalog-params';
 import type { CatalogQuery, ProductListItem } from '@/lib/types';
 import { usePreserveScroll } from './use-preserve-scroll';
@@ -76,6 +77,15 @@ export function useCatalog() {
   );
 
   const [accumulated, setAccumulated] = useState<ProductListItem[]>([]);
+
+  useEffect(() => {
+    if (error) {
+      logger.error('Failed to load catalog products', {
+        query: queryKey,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }, [error, queryKey]);
 
   useEffect(() => {
     if (!data) return;

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { mutate } from 'swr';
 import { api } from '@/lib/api';
+import { logger } from '@/lib/logger';
 import type { CatalogQuery, Category } from '@/lib/types';
 import {
   buildActiveFilterChips,
@@ -44,7 +45,11 @@ export function ActiveFiltersBar({
       setSaveStatus('saved');
       mutate('saved-searches');
       setTimeout(() => setSaveStatus('idle'), 3000);
-    } catch {
+    } catch (error) {
+      logger.error('Failed to save search', {
+        name: saveName.trim(),
+        error: error instanceof Error ? error.message : String(error),
+      });
       setSaveStatus('error');
     }
   }

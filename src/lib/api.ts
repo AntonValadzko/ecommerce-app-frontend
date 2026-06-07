@@ -8,13 +8,14 @@ import type {
   QuickViewProduct,
   SavedSearch,
 } from './types';
+import { getServerEnv, publicEnv } from './env';
+import { logger } from './logger';
 
 function getApiBase(): string {
   if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_API_BASE ?? '/api/v1';
+    return publicEnv.NEXT_PUBLIC_API_BASE;
   }
-  const host = process.env.API_URL ?? 'http://localhost:3000';
-  return `${host}/api/v1`;
+  return `${getServerEnv().API_URL}/api/v1`;
 }
 const SESSION_KEY = 'catalog-session-id';
 
@@ -72,7 +73,13 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(body.message ?? `Request failed: ${response.status}`);
+    const message = body.message ?? `Request failed: ${response.status}`;
+    logger.error('API request failed', {
+      path,
+      status: response.status,
+      message,
+    });
+    throw new Error(message);
   }
 
   if (response.status === 204) return undefined as T;

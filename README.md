@@ -35,12 +35,37 @@ Open http://localhost:3001
 
 ## Configuration
 
+Environment variables are validated at build time (`next.config.ts`), server startup (`layout.tsx`), and via `npm run validate:env`.
+
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `API_URL` | `http://localhost:3000` | Backend URL for SSR and rewrites |
-| `NEXT_PUBLIC_API_BASE` | `/api/v1` | Browser API path (proxied via Next.js) |
+| `API_URL` | `http://localhost:3000` | Backend URL for SSR and `/api/v1` rewrites |
+| `NEXT_PUBLIC_API_BASE` | `/api/v1` | Browser API path (relative via rewrite, or absolute URL) |
+| `LOG_LEVEL` | `debug` (dev) / `info` (prod) | Winston log level: `error`, `warn`, `info`, `debug` |
 
-Copy `.env.local.example` to `.env.local` to customize.
+### Local development
+
+```bash
+cp .env.local.example .env.local
+npm run validate:env
+npm run dev
+```
+
+Defaults work without `.env.local` when the API runs on port 3000.
+
+### Production
+
+```bash
+cp .env.production.example .env.production
+# Set API_URL to your deployed backend (must not be localhost)
+npm run validate:env
+npm run build
+npm run start
+```
+
+**Important:** `API_URL` is read at **build time** (rewrites) and **runtime** (SSR). Set the same value in both phases. `NEXT_PUBLIC_*` variables are inlined at build time.
+
+Copy `.env.local.example` or `.env.production.example` and customize for your environment.
 
 ## Tech stack
 
