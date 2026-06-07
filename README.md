@@ -67,11 +67,23 @@ npm run start
 
 Copy `.env.local.example` or `.env.production.example` and customize for your environment.
 
+## Storybook
+
+Component workshop for UI development and visual testing:
+
+```bash
+npm run storybook        # http://localhost:6006
+npm run build-storybook  # static export to storybook-static/
+```
+
+Stories live next to components (`*.stories.tsx`) with shared fixtures in `src/stories/fixtures/`.
+
 ## Tech stack
 
 - **Next.js 15** App Router
 - **React 19** with client/server components
 - **TypeScript** strict mode
 - **Tailwind CSS**
+- **Storybook 10** with Next.js + Vite
 - **SWR** for client data fetching
 - URL-driven filter state (shareable links)
