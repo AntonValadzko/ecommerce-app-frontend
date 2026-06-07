@@ -14,6 +14,7 @@ import { InfiniteScrollTrigger } from '@/components/catalog/InfiniteScrollTrigge
 import { QuickViewModal } from '@/components/products/QuickViewModal';
 import { SavedSearchesPanel } from '@/components/catalog/SavedSearchesPanel';
 import { ActiveFiltersBar } from '@/components/catalog/ActiveFiltersBar';
+import { isValidSlug } from '@/lib/validation';
 
 function CatalogContent() {
   const {
@@ -38,7 +39,7 @@ function CatalogContent() {
   }
 
   function handleSuggestion(s: AutocompleteSuggestion) {
-    if (s.type === 'product' && s.slug) {
+    if (s.type === 'product' && s.slug && isValidSlug(s.slug)) {
       window.location.href = `/products/${s.slug}`;
     } else if (s.type === 'brand') {
       setQuery({ q: undefined, brand: [String(s.label)] });

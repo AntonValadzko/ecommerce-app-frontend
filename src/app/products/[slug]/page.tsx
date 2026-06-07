@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { api } from '@/lib/api';
 import { logger } from '@/lib/logger';
+import { serializeJsonLd } from '@/lib/json-ld';
+import { isValidSlug } from '@/lib/validation';
 import { formatPrice, discountPercent } from '@/lib/format';
 import { StarRating } from '@/components/ui/StarRating';
 import { ProductDetailClient } from '@/components/products/ProductDetailClient';
@@ -27,6 +29,8 @@ async function getProduct(slug: string) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  if (!isValidSlug(slug)) return { title: 'Product not found' };
+
   const result = await getProduct(slug);
   if (!result) return { title: 'Product not found' };
 
@@ -46,6 +50,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
+  if (!isValidSlug(slug)) notFound();
+
   const result = await getProduct(slug);
   if (!result) notFound();
 
@@ -64,7 +70,7 @@ export default async function ProductPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(seo.structuredData) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(seo.structuredData) }}
       />
 
       <nav className="mb-6 text-sm text-slate-500">

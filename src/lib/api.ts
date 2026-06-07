@@ -10,6 +10,11 @@ import type {
 } from './types';
 import { getServerEnv, publicEnv } from './env';
 import { logger } from './logger';
+import {
+  assertProductId,
+  assertSavedSearchId,
+  assertSlug,
+} from './validation';
 
 function getApiBase(): string {
   if (typeof window !== 'undefined') {
@@ -99,18 +104,24 @@ export const api = {
     ),
 
   getProduct: (id: number) =>
-    apiFetch<{ data: Product; meta: { seo: import('./types').SeoMeta } }>(`/products/${id}`),
+    apiFetch<{ data: Product; meta: { seo: import('./types').SeoMeta } }>(
+      `/products/${assertProductId(id)}`
+    ),
 
   getProductBySlug: (slug: string) =>
     apiFetch<{ data: Product; meta: { seo: import('./types').SeoMeta } }>(
-      `/products/slug/${slug}`
+      `/products/slug/${assertSlug(slug)}`
     ),
 
   getQuickView: (id: number) =>
-    apiFetch<{ data: QuickViewProduct }>(`/products/${id}/quick-view`),
+    apiFetch<{ data: QuickViewProduct }>(
+      `/products/${assertProductId(id)}/quick-view`
+    ),
 
   getRelated: (id: number) =>
-    apiFetch<{ data: import('./types').ProductListItem[] }>(`/products/${id}/related`),
+    apiFetch<{ data: import('./types').ProductListItem[] }>(
+      `/products/${assertProductId(id)}/related`
+    ),
 
   getCategories: () => apiFetch<{ data: Category[] }>('/categories'),
 
@@ -124,5 +135,7 @@ export const api = {
     }),
 
   deleteSavedSearch: (id: string) =>
-    apiFetch<void>(`/saved-searches/${id}`, { method: 'DELETE' }),
+    apiFetch<void>(`/saved-searches/${assertSavedSearchId(id)}`, {
+      method: 'DELETE',
+    }),
 };
