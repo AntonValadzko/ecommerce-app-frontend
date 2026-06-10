@@ -142,6 +142,9 @@ export function summarizeQuery(q: CatalogQuery): string {
 
 /** Query fields worth persisting as a saved search (excludes pagination state). */
 export function toSavableQuery(query: CatalogQuery): CatalogQuery {
-  const { page: _p, cursor: _c, scroll: _s, ...rest } = query;
+  const rest = { ...query };
+  delete rest.page;
+  delete rest.cursor;
+  delete rest.scroll;
   return rest;
 }

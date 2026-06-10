@@ -74,9 +74,11 @@ export function SearchBar({ query, onSearch, onSelectSuggestion }: SearchBarProp
           role="listbox"
         >
           {suggestions.map((s, i) => (
-            <li key={`${s.type}-${s.id}-${i}`} role="option">
+            <li key={`${s.type}-${s.id}-${i}`}>
               <button
                 type="button"
+                role="option"
+                aria-selected={false}
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-brand-50"
                 onClick={() => {
                   onSelectSuggestion(s);

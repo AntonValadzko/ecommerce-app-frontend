@@ -6,7 +6,10 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "lint": "tsc --noEmit",
+    "lint": "npm run lint:types && npm run lint:eslint",
+    "lint:types": "tsc --noEmit",
+    "lint:eslint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
     "validate:env": "tsx scripts/validate-env.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
@@ -42,11 +45,7 @@
     "tsx": "^4.19.4",
     "typescript": "5.8.2",
     "vite": "^8.0.16",
-    "vitest": "^4.1.8"
-  },
-  "eslintConfig": {
-    "extends": [
-      "plugin:storybook/recommended"
-    ]
+    "vitest": "^4.1.8",
+    "@eslint/eslintrc": "^3.3.1"
   }
 }

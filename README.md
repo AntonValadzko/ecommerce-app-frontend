@@ -67,6 +67,19 @@ npm run start
 
 Copy `.env.local.example` or `.env.production.example` and customize for your environment.
 
+## Linting
+
+ESLint 9 (flat config) with `eslint-config-next` (core-web-vitals + TypeScript) and Storybook rules:
+
+```bash
+npm run lint          # TypeScript + ESLint
+npm run lint:types    # tsc --noEmit only
+npm run lint:eslint   # ESLint only
+npm run lint:fix      # auto-fix ESLint issues
+```
+
+Config: `eslint.config.mjs`
+
 ## Storybook
 
 Component workshop for UI development and visual testing:
