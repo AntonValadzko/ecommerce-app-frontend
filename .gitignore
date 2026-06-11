@@ -7,3 +7,11 @@ out/
 
 *storybook.log
 storybook-static
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+
+# IDE / editor
+.idea/
+.codemie/
+.vscode/
