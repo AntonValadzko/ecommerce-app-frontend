@@ -35,7 +35,7 @@ Open http://localhost:3001
 
 ## Configuration
 
-Environment variables are validated at build time (`next.config.ts`), server startup (`layout.tsx`), and via `npm run validate:env`.
+Environment variables are validated at build time (`next.config.ts`) and via `npm run validate:env`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -66,6 +66,29 @@ npm run start
 **Important:** `API_URL` is read at **build time** (rewrites) and **runtime** (SSR). Set the same value in both phases. `NEXT_PUBLIC_*` variables are inlined at build time.
 
 Copy `.env.local.example` or `.env.production.example` and customize for your environment.
+
+### AWS Amplify Hosting
+
+Amplify console variables are **not** available to Next.js SSR unless they are written into a `.env.production` file during the build. This repo includes `amplify.yml` and `scripts/write-amplify-env.sh` to do that automatically.
+
+**1. Set variables in Amplify Console** (Hosting → Environment variables):
+
+| Variable | Required | Example |
+|----------|----------|---------|
+| `API_URL` | Yes | `https://api.yourdomain.com` |
+| `NEXT_PUBLIC_API_BASE` | No | `/api/v1` |
+| `LOG_LEVEL` | No | `info` |
+
+**2. Commit and deploy** — `amplify.yml` runs before `npm run build`:
+
+```bash
+bash scripts/write-amplify-env.sh   # API_URL + NEXT_PUBLIC_* → .env.production
+npm run build
+```
+
+**3. Verify** in the build log: `Amplify env: wrote N variables to .env.production`
+
+If `API_URL` is missing, the build fails early with a clear error.
 
 ## Linting
 
