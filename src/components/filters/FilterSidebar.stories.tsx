@@ -8,6 +8,7 @@ import {
 } from '@/stories/fixtures/catalog';
 import { FilterSidebar } from './FilterSidebar';
 
+
 const meta = {
   title: 'Filters/FilterSidebar',
   component: FilterSidebar,
