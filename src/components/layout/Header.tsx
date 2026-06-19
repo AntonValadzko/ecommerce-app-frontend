@@ -16,14 +16,6 @@ export function Header() {
           <Link href="/" className="hover:text-brand-600">
             Catalog
           </Link>
-          <a
-            href="http://localhost:3000/api/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-brand-600"
-          >
-            API Docs
-          </a>
         </nav>
       </div>
     </header>
