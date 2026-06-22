@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { logger } from '@/lib/logger';
-import { catalogParamsToUrl, parseCatalogParams } from '@/lib/catalog-params';
+import { catalogParamsToUrl, hasActiveFilters, parseCatalogParams } from '@/lib/catalog-params';
 import type { CatalogQuery, ProductListItem } from '@/lib/types';
 import { usePreserveScroll } from './use-preserve-scroll';
 
@@ -27,10 +27,14 @@ export function useCatalog() {
 
   const queryKey = useMemo(() => JSON.stringify(query), [query]);
 
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error: productsError, isLoading, mutate } = useSWR(
     ['products', queryKey],
     () => api.getProducts(query),
     { keepPreviousData: true }
+  );
+
+  const { data: categoriesData, isLoading: categoriesLoading } = useSWR('categories', () =>
+    api.getCategories()
   );
 
   const { captureScroll } = usePreserveScroll(queryKey, !isLoading);
@@ -79,13 +83,13 @@ export function useCatalog() {
   const [accumulated, setAccumulated] = useState<ProductListItem[]>([]);
 
   useEffect(() => {
-    if (error) {
+    if (productsError) {
       logger.error('Failed to load catalog products', {
         query: queryKey,
-        error: error instanceof Error ? error.message : String(error),
+        error: productsError instanceof Error ? productsError.message : String(productsError),
       });
     }
-  }, [error, queryKey]);
+  }, [productsError, queryKey]);
 
   useEffect(() => {
     if (!data) return;
@@ -112,6 +116,18 @@ export function useCatalog() {
 
   const products = query.scroll ? accumulated : (data?.data ?? []);
 
+  const isEmptyCatalogUnavailable =
+    !productsError &&
+    !isLoading &&
+    !categoriesLoading &&
+    data !== undefined &&
+    !hasActiveFilters(query) &&
+    (data.pagination?.total ?? 0) === 0 &&
+    products.length === 0 &&
+    (categoriesData?.data?.length ?? 0) === 0;
+
+  const isUnavailable = Boolean(productsError) || isEmptyCatalogUnavailable;
+
   return {
     query,
     setQuery,
@@ -119,8 +135,9 @@ export function useCatalog() {
     pagination: data?.pagination,
     seo: data?.meta.seo,
     facets: facetsData?.data,
+    categories: categoriesData?.data ?? [],
     isLoading,
-    error,
+    isUnavailable,
     loadMore,
     refresh: mutate,
   };

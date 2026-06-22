@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useCatalog } from './use-catalog';
 import { setMockSearchParams } from '@/test-utils';
 
@@ -10,6 +10,7 @@ jest.mock('@/lib/api', () => ({
       meta: { sort: 'relevance', pageSizeOptions: [24], infiniteScroll: false, seo: {} },
     }),
     getFacets: jest.fn().mockResolvedValue({ data: { brands: [], priceRange: { min: 0, max: 0 }, ratings: [], attributes: {}, categories: [] } }),
+    getCategories: jest.fn().mockResolvedValue({ data: [] }),
   },
 }));
 
@@ -19,5 +20,14 @@ describe('useCatalog', () => {
     const { result } = renderHook(() => useCatalog());
     expect(result.current.query.q).toBe('headphones');
     expect(result.current.query.sort).toBe('rating');
+  });
+
+  it('marks catalog unavailable when default browse returns no products or categories', async () => {
+    setMockSearchParams({});
+    const { result } = renderHook(() => useCatalog());
+
+    await waitFor(() => {
+      expect(result.current.isUnavailable).toBe(true);
+    });
   });
 });

@@ -16,6 +16,16 @@ import {
   assertSlug,
 } from './validation';
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status?: number
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 function getApiBase(): string {
   if (typeof window !== 'undefined') {
     return publicEnv.NEXT_PUBLIC_API_BASE;
@@ -69,10 +79,19 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const sessionId = getSessionId();
   if (sessionId) headers.set('x-session-id', sessionId);
 
-  const response = await fetch(`${getApiBase()}${path}`, {
-    ...init,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBase()}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch (error) {
+    logger.error('API request failed', {
+      path,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    throw new ApiError('Unable to reach the server. Please try again later.');
+  }
 
   updateSessionFromResponse(response);
 
@@ -84,7 +103,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
       status: response.status,
       message,
     });
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   if (response.status === 204) return undefined as T;

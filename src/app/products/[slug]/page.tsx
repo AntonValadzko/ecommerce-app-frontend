@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import { ServiceUnavailable } from '@/components/ui/ServiceUnavailable';
 import { logger } from '@/lib/logger';
 import { serializeJsonLd } from '@/lib/json-ld';
 import { isValidSlug } from '@/lib/validation';
@@ -15,15 +16,24 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-async function getProduct(slug: string) {
+type ProductLoadResult =
+  | { status: 'ok'; result: Awaited<ReturnType<typeof api.getProductBySlug>> }
+  | { status: 'not_found' }
+  | { status: 'unavailable' };
+
+async function loadProduct(slug: string): Promise<ProductLoadResult> {
   try {
-    return await api.getProductBySlug(slug);
+    const result = await api.getProductBySlug(slug);
+    return { status: 'ok', result };
   } catch (error) {
-    logger.warn('Product not found or failed to load', {
+    if (error instanceof ApiError && error.status === 404) {
+      return { status: 'not_found' };
+    }
+    logger.warn('Product failed to load', {
       slug,
       error: error instanceof Error ? error.message : String(error),
     });
-    return null;
+    return { status: 'unavailable' };
   }
 }
 
@@ -31,10 +41,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   if (!isValidSlug(slug)) return { title: 'Product not found' };
 
-  const result = await getProduct(slug);
-  if (!result) return { title: 'Product not found' };
+  const loaded = await loadProduct(slug);
+  if (loaded.status === 'not_found') return { title: 'Product not found' };
+  if (loaded.status === 'unavailable') return { title: 'Service unavailable' };
 
-  const seo = result.meta.seo;
+  const seo = loaded.result.meta.seo;
   return {
     title: seo.title,
     description: seo.description,
@@ -43,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: seo.title,
       description: seo.description,
       type: 'website',
-      images: result.data.imageUrl ? [{ url: result.data.imageUrl }] : [],
+      images: loaded.result.data.imageUrl ? [{ url: loaded.result.data.imageUrl }] : [],
     },
   };
 }
@@ -52,10 +63,13 @@ export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
   if (!isValidSlug(slug)) notFound();
 
-  const result = await getProduct(slug);
-  if (!result) notFound();
+  const loaded = await loadProduct(slug);
+  if (loaded.status === 'not_found') notFound();
+  if (loaded.status === 'unavailable') {
+    return <ServiceUnavailable />;
+  }
 
-  const { data: product } = result;
+  const { data: product } = loaded.result;
   const related = await api.getRelated(product.id).catch((error) => {
     logger.warn('Failed to load related products', {
       productId: product.id,
@@ -64,7 +78,7 @@ export default async function ProductPage({ params }: PageProps) {
     return { data: [] };
   });
   const discount = discountPercent(product.price, product.compareAtPrice);
-  const seo = result.meta.seo;
+  const seo = loaded.result.meta.seo;
 
   return (
     <>

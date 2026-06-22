@@ -86,3 +86,16 @@ export function catalogParamsToUrl(query: CatalogQuery): string {
 }
 
 export { PAGE_SIZES, SORT_OPTIONS };
+
+export function hasActiveFilters(query: CatalogQuery): boolean {
+  return Boolean(
+    query.q ||
+      query.category ||
+      query.brand?.length ||
+      query.minPrice !== undefined ||
+      query.maxPrice !== undefined ||
+      query.minRating !== undefined ||
+      query.inStock ||
+      (query.attributes && Object.keys(query.attributes).length > 0)
+  );
+}

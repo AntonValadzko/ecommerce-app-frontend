@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { buildQueryString, api } from './api';
+import { buildQueryString, api, ApiError } from './api';
 
 jest.mock('./env', () => ({
   publicEnv: { NEXT_PUBLIC_API_BASE: '/api/v1' },
@@ -74,6 +74,15 @@ describe('api', () => {
       });
 
       await expect(api.getProduct(1)).rejects.toThrow('Not found');
+      await expect(api.getProduct(1)).rejects.toBeInstanceOf(ApiError);
+    });
+
+    it('throws ApiError when fetch fails', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(new TypeError('Failed to fetch'));
+
+      await expect(api.getProducts({ page: 1, limit: 24, sort: 'relevance' })).rejects.toThrow(
+        'Unable to reach the server'
+      );
     });
 
     it('validates slug and id in path', () => {

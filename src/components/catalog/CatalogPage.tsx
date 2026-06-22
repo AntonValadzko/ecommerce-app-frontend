@@ -1,9 +1,7 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import useSWR from 'swr';
 import { useCatalog } from '@/hooks/use-catalog';
-import { api } from '@/lib/api';
 import type { AutocompleteSuggestion } from '@/lib/types';
 import { SearchBar } from '@/components/search/SearchBar';
 import { FilterSidebar } from '@/components/filters/FilterSidebar';
@@ -14,6 +12,7 @@ import { InfiniteScrollTrigger } from '@/components/catalog/InfiniteScrollTrigge
 import { QuickViewModal } from '@/components/products/QuickViewModal';
 import { SavedSearchesPanel } from '@/components/catalog/SavedSearchesPanel';
 import { ActiveFiltersBar } from '@/components/catalog/ActiveFiltersBar';
+import { ServiceUnavailable } from '@/components/ui/ServiceUnavailable';
 import { isValidSlug } from '@/lib/validation';
 
 function CatalogContent() {
@@ -23,16 +22,16 @@ function CatalogContent() {
     products,
     pagination,
     facets,
+    categories,
     isLoading,
+    isUnavailable,
     loadMore,
+    refresh,
   } = useCatalog();
 
-  const { data: categoriesData } = useSWR('categories', () => api.getCategories());
   const [quickViewId, setQuickViewId] = useState<number | null>(null);
   const [savedOpen, setSavedOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
-  const categories = categoriesData?.data ?? [];
 
   function handleSearch(q: string) {
     setQuery({ q: q || undefined });
@@ -119,11 +118,15 @@ function CatalogContent() {
           )}
 
           <CatalogToolbar query={query} pagination={pagination} onChange={setQuery} />
-          <ProductGrid
-            products={products}
-            onQuickView={setQuickViewId}
-            isLoading={isLoading}
-          />
+          {isUnavailable ? (
+            <ServiceUnavailable onRetry={() => void refresh()} />
+          ) : (
+            <ProductGrid
+              products={products}
+              onQuickView={setQuickViewId}
+              isLoading={isLoading}
+            />
+          )}
 
           {query.scroll ? (
             <InfiniteScrollTrigger
